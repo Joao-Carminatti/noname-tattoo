@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/*
+ * Tokens da direção A ("Stencil").
+ * Para trocar de estúdio/paleta, altere apenas este bloco.
+ * Contrastes (WCAG): bone/ink-950 ≈ 16:1 · muted/ink-950 ≈ 8:1 ·
+ * stencil/ink-950 ≈ 6,6:1 · stencil/ink-900 ≈ 6:1 (todos AA ou melhor).
+ */
+@theme {
+  --color-ink-950: #0b0b0d;
+  --color-ink-900: #151518;
+  --color-ink-700: #2a2a30;
+  --color-bone: #f2efea;
+  --color-muted: #a8a5ae;
+  --color-stencil: #8b7cff;
+  --color-stencil-soft: #b3a9ff;
+}
+
+/* Fontes vêm de next/font (variáveis CSS definidas no layout). */
+@theme inline {
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-ink-950);
+    color: var(--color-bone);
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Foco visível e consistente em todo o site. */
+  :focus-visible {
+    outline: 2px solid var(--color-stencil-soft);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-stencil);
+    color: var(--color-ink-950);
+  }
+}
+
+/* Versão estática de qualquer animação para quem pede menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- Componentes e animações (apenas transform, opacity, clip-path, stroke-dashoffset) ---------- */
+
+/* Gota de tinta nos CTAs */
+.btn-ink { position: relative; isolation: isolate; overflow: hidden; display: inline-block; padding: 0.8rem 1.6rem; border-radius: 2px; font-weight: 500; transition: color 0.35s; }
+.btn-ink::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: circle(0 at var(--x, 50%) var(--y, 50%)); transition: clip-path 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+.btn-ink:hover::before, .btn-ink:focus-visible::before { clip-path: circle(150% at var(--x, 50%) var(--y, 50%)); }
+.btn-solid { background: var(--color-stencil); color: var(--color-ink-950); }
+.btn-solid::before { background: var(--color-bone); }
+.btn-outline { border: 1px solid var(--color-ink-700); color: var(--color-bone); }
+.btn-outline::before { background: var(--color-stencil); }
+.btn-outline:hover, .btn-outline:focus-visible { color: var(--color-ink-950); }
+
+/* Traços desenhados: o estado inicial só existe quando há JS (sem JS, tudo aparece). */
+.tattoo-draw path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.ink path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+@media (scripting: enabled) {
+  .tattoo-draw path { stroke-dashoffset: 1; animation: draw 2.4s 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  .tattoo-draw path:nth-child(n + 3) { animation-delay: 1.2s; }
+  .ink path { stroke-dashoffset: 1; }
+  .ink[data-in] path { animation: draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  /* Stencil -> foto */
+  .stencil-photo { clip-path: inset(0 100% 0 0); transition: clip-path 1.1s cubic-bezier(0.65, 0, 0.35, 1); }
+  .stencil[data-in] .stencil-photo, .stencil:hover .stencil-photo, .stencil:focus-within .stencil-photo { clip-path: inset(0 0 0 0); }
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.stencil-base { filter: grayscale(1) contrast(2.5) brightness(0.55); opacity: 0.9; }
+.stencil-tint { background: var(--color-stencil); mix-blend-mode: multiply; opacity: 0.55; }
+
+/* Linha guia e flash sheet: scroll-driven, com progressive enhancement */
+.scroll-guide { display: none; }
+@supports (animation-timeline: scroll()) {
+  .scroll-guide { display: block; position: fixed; z-index: 30; left: 10px; top: 0; width: 1px; height: 100svh; background: var(--color-stencil); transform-origin: top; transform: scaleY(0); animation: grow linear both; animation-timeline: scroll(root); }
+  .flash { animation: drift linear both; animation-timeline: view(); }
+}
+@keyframes grow { to { transform: scaleY(1); } }
+@keyframes drift { from { transform: translateY(24px) rotate(var(--r, 0deg)); } to { transform: translateY(-24px) rotate(calc(var(--r, 0deg) + 8deg)); } }
+@media (max-width: 767px) { .scroll-guide { display: none; } }
+
+.btn-sm { padding: 0.5rem 1.1rem; font-size: 0.875rem; }
+@media (max-width: 480px) { .btn-ink { padding: 0.75rem 1.25rem; } }
